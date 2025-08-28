@@ -215,7 +215,7 @@ network FTTR_50G_10GPON_v4
     types:
         channel FTTR_Channel extends ned.DatarateChannel
         {
-            @display("ls=red,3");
+            @display("ls=green,3");
             volatile double distance @unit(km) = default(10 m);
             delay = this.distance/(2e5 km)*1s;							// considering speed of light in fiber = 2x10^5 km/s
             datarate = 10 Gbps;

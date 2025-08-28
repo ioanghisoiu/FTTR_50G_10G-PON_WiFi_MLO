@@ -27,18 +27,18 @@ class ONU : public cSimpleModule
         cQueue queue_TC3;                       // queue for T-CONT 3 traffic: assured bandwidth without guarantee
         cQueue gtc_dl_queue;                    // queue to store gtc_dl_headers
         double capacity;                        // buffer size = 100 MB
-        double pending_buffer_TC1 = 0;          // pending data size in buffer
-        double pending_buffer_TC2 = 0;
-        double pending_buffer_TC3 = 0;
-        double packet_drop_count = 0;
-        double olt_onu_rtt = 0;
-        double start_time_TC1 = 0;
-        double onu_grant_TC1 = 0;
-        double start_time_TC2 = 0;
-        double onu_grant_TC2 = 0;
-        double start_time_TC3 = 0;
-        double onu_grant_TC3 = 0;
-        double gtc_hdr_sz = 0;
+        double pending_buffer_TC1 = 0.0;          // pending data size in buffer
+        double pending_buffer_TC2 = 0.0;
+        double pending_buffer_TC3 = 0.0;
+        double packet_drop_count = 0.0;
+        double olt_onu_rtt = 0.0;
+        double start_time_TC1 = 0.0;
+        double onu_grant_TC1 = 0.0;
+        double start_time_TC2 = 0.0;
+        double onu_grant_TC2 = 0.0;
+        double start_time_TC3 = 0.0;
+        double onu_grant_TC3 = 0.0;
+        double gtc_hdr_sz = 0.0;
         long seqID;
 
         //simsignal_t latencySignalXr;
@@ -221,8 +221,8 @@ void ONU::handleMessage(cMessage *msg)
                 delete dl_hdr;          // deleting the used gtc_dl_header
             }
             else {
-                onu_grant_TC2 = 0;
-                onu_grant_TC3 = 0;
+                onu_grant_TC2 = 0.0;
+                onu_grant_TC3 = 0.0;
             }
 
             gtc_header *gtc_hdr_ul = new gtc_header("gtc_hdr_ul");
@@ -245,7 +245,7 @@ void ONU::handleMessage(cMessage *msg)
         }
         else if(strcmp(msg->getName(),"send_ul_payload_TC2") == 0) {
             // for T-CONT 2
-            if((onu_grant_TC2 > 0)&&(pending_buffer_TC2 > 0)) {
+            if((onu_grant_TC2 > 0.0)&&(pending_buffer_TC2 > 0.0)) {
                 if(!queue_TC2.isEmpty()) {
                     ethPacket *front = (ethPacket *)queue_TC2.front();
                     if(front->getByteLength() <= onu_grant_TC2) {                // check if the first packet can be sent now
@@ -290,7 +290,7 @@ void ONU::handleMessage(cMessage *msg)
                             //EV << getFullName() << " at " << simTime() << " sent fragmented packet of size: " << onu_grant_TC2 << " and en-queued packet of size = " << data->getByteLength() << endl;
 
                             pending_buffer_TC2 = std::max(0.0,pending_buffer_TC2 - onu_grant_TC2);
-                            onu_grant_TC2 = 0;          // grant exhausted!
+                            onu_grant_TC2 = 0.0;          // grant exhausted!
 
                             //double xr_packet_latency = copy->getOnuDepartureTime().dbl() - copy->getOnuArrivalTime().dbl();
                             //EV << getFullName() << " packet_latency: " << packet_latency << endl;
@@ -319,7 +319,7 @@ void ONU::handleMessage(cMessage *msg)
         else if(strcmp(msg->getName(),"send_ul_payload_TC3") == 0) {
             // for T-CONT 3
             EV << getFullName() << " onu_grant_TC3: " << onu_grant_TC3 << ", pending_buffer_TC3 = " << pending_buffer_TC3 << ", msg->isScheduled(): " << msg->isScheduled() << endl;
-            if((onu_grant_TC3 > 0)&&(pending_buffer_TC3 > 0)&&(!msg->isScheduled())) {
+            if((onu_grant_TC3 > 0.0)&&(pending_buffer_TC3 > 0.0)&&(!msg->isScheduled())) {
                 //EV << getFullName() << " queue_TC3.isEmpty(): " << queue_TC3.isEmpty() << endl;
                 if(!queue_TC3.isEmpty()) {
                     ethPacket *front = (ethPacket *)queue_TC3.front();
@@ -344,7 +344,7 @@ void ONU::handleMessage(cMessage *msg)
                         }*/
 
                         // rescheduling send_ul_payload to send the consecutive queued packets
-                        if(pending_buffer_TC3 > 0) {
+                        if(pending_buffer_TC3 > 0.0) {
                             simtime_t Txtime = (simtime_t)(data->getBitLength()/ext_pon_link_datarate);
                             scheduleAt(data->getSendingTime()+Txtime,msg);
                             //EV << getFullName() << " send_ul_payload re-scheduled!" << endl;
@@ -378,7 +378,7 @@ void ONU::handleMessage(cMessage *msg)
                             //EV << getFullName() << " at " << simTime() << " sent fragmented packet of size: " << onu_grant_TC3 << " and en-queued packet of size = " << data->getByteLength() << endl;
 
                             pending_buffer_TC3 = std::max(0.0,pending_buffer_TC3 - onu_grant_TC3);
-                            onu_grant_TC3 = 0;          // grant exhausted!
+                            onu_grant_TC3 = 0.0;          // grant exhausted!
 
                             /*if(strcmp(data->getName(),"bkg_data") == 0) {
                                 double bkg_packet_latency = data->getOnuDepartureTime().dbl() - data->getOnuArrivalTime().dbl();

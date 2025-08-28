@@ -213,10 +213,11 @@ void WiFi_AP::handleMessage(cMessage *msg)
                 sta_bw_6G.push_back(320e6);                                 // allocating 320 MHz as only XR connected at this band
                 sta_name_6G.push_back(png->getSenderModule()->getName());
                 sta_bphz_6G.push_back(12);                                  // 12 bits/s/Hz
-                double datarate = 320e6*12*(5/6)*8;                               // spatial streams = 8
+                double datarate = 320e6*12*(5/6.0)*8;                               // spatial streams = 8
                 sta_datarate_6G.push_back(datarate);
                 sta_tx_time_6G.push_back(500e-6);
                 sta_modules_6G.push_back(png->getSenderModule());
+                EV << getFullName() << " Received 6GHz ping from = " << png->getSenderModule()->getName() << ", datarate[ " << sta_datarate_6G.size()<< "] = " << datarate << endl;
             }
             else if(strcmp(png->getSTA_band_pref(),"5GHz") == 0 ) {
                 sta_dist_5G.push_back(png->getInter_node_dist());
@@ -224,10 +225,11 @@ void WiFi_AP::handleMessage(cMessage *msg)
                 sta_bw_5G.push_back(40e6);                                  // allocating 40 MHz as default allocation
                 sta_name_5G.push_back(png->getSenderModule()->getName());
                 sta_bphz_6G.push_back(10);                                  // 10 bits/s/Hz
-                double datarate = 40e6*10*(5/6)*2;                                // spatial streams = 2 each device
+                double datarate = 40e6*10*(5/6.0)*2;                                // spatial streams = 2 each device
                 sta_datarate_5G.push_back(datarate);
                 sta_tx_time_5G.push_back(250e-6);
                 sta_modules_5G.push_back(png->getSenderModule());
+                EV << getFullName() << " Received 5GHz ping from = " << png->getSenderModule()->getName() << ", datarate[ " << sta_datarate_5G.size()<< "] = " << datarate << endl;
             }
             delete png;
         }
@@ -235,15 +237,17 @@ void WiFi_AP::handleMessage(cMessage *msg)
             for (int i = 0; i< sta_name_6G.size(); i++) {
                 trigger_bsr *trg = new trigger_bsr("trigger_6GHz");
                 trg->setByteLength(100);                                    // setting trigger packet size = 100 bytes
-                double datarate_tmp = max(sta_datarate_6G[i], 320e6*12*(5/6)*8*(sta_bsr_6G[i]/accumulate(sta_bsr_6G.begin(), sta_bsr_6G.end(), 0.0)));
+                double datarate_tmp = max(sta_datarate_6G[i], 320e6*12*(5/6.0)*8*(sta_bsr_6G[i]/accumulate(sta_bsr_6G.begin(), sta_bsr_6G.end(), 0.0)));
                 trg->setThroughput(datarate_tmp);
                 trg->setBW_alloc(sta_bw_6G[i]);
                 trg->setTX_time(sta_tx_time_6G[i]);
+                EV << getFullName() << " datarate_tmp = " << datarate_tmp << ", sta_bw_6G = " << sta_bw_6G[i] << ", sta_tx_time_6G = " << sta_tx_time_6G[i] << endl;
 
                 cModule *targetModule = sta_modules_6G[i];
                 // compute delays
                 simtime_t propDelay = sta_dist_6G[i] / (3e8);
                 simtime_t txDuration = trg->getBitLength() / sta_datarate_6G[i];
+                EV << getFullName() << " propDelay = " << propDelay << ", txDuration = " << txDuration << endl;
                 // send it
                 sendDirect(trg, propDelay, txDuration, targetModule->gate("in"));
                 EV << getFullName() << " Sent trigger to " << sta_modules_6G[i]->getFullName() << " at " << simTime();
@@ -256,15 +260,17 @@ void WiFi_AP::handleMessage(cMessage *msg)
             for (int i = 0; i< sta_name_5G.size(); i++) {
                 trigger_bsr *trg = new trigger_bsr("trigger_5GHz");
                 trg->setByteLength(100);
-                double datarate_tmp = max(sta_datarate_5G[i], 160e6*10*(5/6)*2*(sta_bsr_5G[i]/accumulate(sta_bsr_5G.begin(), sta_bsr_5G.end(), 0.0)));
+                double datarate_tmp = max(sta_datarate_5G[i], 160e6*10*(5/6.0)*2*(sta_bsr_5G[i]/accumulate(sta_bsr_5G.begin(), sta_bsr_5G.end(), 0.0)));
                 trg->setThroughput(datarate_tmp);
                 trg->setBW_alloc(sta_bw_5G[i]);
                 trg->setTX_time(sta_tx_time_5G[i]);
+                EV << getFullName() << " datarate_tmp = " << datarate_tmp << ", sta_bw_5G = " << sta_bw_5G[i] << ", sta_tx_time_5G = " << sta_tx_time_5G[i] << endl;
 
                 cModule *targetModule = sta_modules_5G[i];
                 // compute delays
                 simtime_t propDelay = sta_dist_5G[i] / (3e8);
                 simtime_t txDuration = trg->getBitLength() / sta_datarate_5G[i];
+                EV << getFullName() << " propDelay = " << propDelay << ", txDuration = " << txDuration << endl;
                 // send it
                 sendDirect(trg, propDelay, txDuration, targetModule->gate("in"));
                 EV << getFullName() << " Sent trigger to " << sta_modules_5G[i]->getFullName() << " at " << simTime();

@@ -31,8 +31,8 @@ class Background_Device : public cSimpleModule
     double pkt_interval;
     double wireless_datarate;
     double wap_dist;
-    double buffer_size = 0;
-    double ul_tx_time = 0;
+    double buffer_size = 0.0;
+    double ul_tx_time = 0.0;
     vector<double> dist_values;
 
     cMessage *generateEvent = nullptr;
@@ -96,7 +96,7 @@ void Background_Device::initialize()
     png->setInter_node_dist(wap_dist);
 
     cModule *targetModule = getParentModule()->getSubmodule("waps", getIndex());
-    sendDirect(png, 0, 0, targetModule->gate("Src_in"));
+    sendDirect(png, 0.0, 0.0, targetModule->gate("Src_in"));
     EV << getFullName() << " Sending ping to " << targetModule->getFullName() << " at = " << simTime() << endl;
 
     source_queue.setName("source_queue");
@@ -146,7 +146,7 @@ void Background_Device::handleMessage(cMessage *msg)
             simtime_t txDuration = pkt->getBitLength() / wireless_datarate;
             // send it
             sendDirect(pkt, propDelay, txDuration, targetModule->gate("Src_in"));
-            //sendDirect(pkt, 0, 0, targetModule->gate("Src_in"));
+            //sendDirect(pkt, 0.0, 0.0, targetModule->gate("Src_in"));
             scheduleAt(simTime()+txDuration, sendEvent);
             EV << getFullName() << " Sent background packet at = " << simTime();
             EV << " and next packet will be sent at = " << simTime()+txDuration << endl;
@@ -169,7 +169,7 @@ void Background_Device::handleMessage(cMessage *msg)
             EV << " and next packet may be sent at = " << simTime()+txDuration << endl;
 
             ul_tx_time -= txDuration.dbl();                       // transmission time of current packet is reduced
-            if(ul_tx_time > 0) {
+            if(ul_tx_time > 0.0) {
                 if(!source_queue.isEmpty()) {                     // need to check if the remaining ul_tx_time is sufficient to transmit the next packet
                     ethPacket *front = (ethPacket *)source_queue.front();
                     double txLatency = front->getBitLength() / wireless_datarate;
@@ -203,7 +203,7 @@ void Background_Device::handleMessage(cMessage *msg)
         EV << getFullName() << " Sent BSR to = " << targetModule->getFullName() << " at " << simTime() << endl;
 
         // schedule ul transmission after SIFS
-        if((ul_tx_time > 0)&&(!sendEventTxBound->isScheduled())) {
+        if((ul_tx_time > 0.0)&&(!sendEventTxBound->isScheduled())) {
             scheduleAt(simTime()+wifi_sifs_time, sendEventTxBound);
         }
         // ignoring ACK and other control messages intentionally as their time gaps are numerically considered

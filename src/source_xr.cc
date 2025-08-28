@@ -41,8 +41,8 @@ class XR_Device : public cSimpleModule
         double pkt_size;
         double wireless_datarate;
         double wap_dist;
-        double buffer_size = 0;
-        double ul_tx_time = 0;
+        double buffer_size = 0.0;
+        double ul_tx_time = 0.0;
         vector<double> dist_values;
 
         cMessage *generateEvent = nullptr;
@@ -157,10 +157,8 @@ void XR_Device::handleMessage(cMessage *msg)
             buffer_size -= pkt->getByteLength();
 
             cModule *targetModule = getParentModule()->getSubmodule("waps", (getIndex()*2));
-            // compute delays
             simtime_t propDelay = wap_dist / (3e8);
             simtime_t txDuration = pkt->getBitLength() / wireless_datarate;
-            // send it
             sendDirect(pkt, propDelay, txDuration, targetModule->gate("Src_in"));
             //sendDirect(pkt, 0, 0, targetModule->gate("Src_in"));
             scheduleAt(simTime()+txDuration, sendEvent);
@@ -180,6 +178,7 @@ void XR_Device::handleMessage(cMessage *msg)
             cModule *targetModule = getParentModule()->getSubmodule("waps", (getIndex()*2));
             simtime_t propDelay = wap_dist / (3e8);
             simtime_t txDuration = pkt->getBitLength() / wireless_datarate;
+            EV << getFullName() << " wireless_datarate = " << wireless_datarate << ", propDelay = " << propDelay << ", txDuration = " << txDuration << endl;
             sendDirect(pkt, propDelay, txDuration, targetModule->gate("Src_in"));
             EV << getFullName() << " Sent XR packet at = " << simTime();
             EV << " and next packet may be sent at = " << simTime()+txDuration << endl;
@@ -203,6 +202,7 @@ void XR_Device::handleMessage(cMessage *msg)
         trigger_bsr *trg = check_and_cast<trigger_bsr *>(msg);
         wireless_datarate = trg->getThroughput();
         ul_tx_time = trg->getTX_time();
+        EV << getFullName() << " Trigger wireless_datarate = " << wireless_datarate << ", ul_tx_time = " << ul_tx_time << endl;
         delete trg;
 
         trigger_bsr *bsr = new trigger_bsr("bsr");
@@ -214,6 +214,7 @@ void XR_Device::handleMessage(cMessage *msg)
         // compute delays
         simtime_t propDelay = wap_dist / (3e8);
         simtime_t txDuration = bsr->getBitLength() / wireless_datarate;
+        EV << getFullName() << " propDelay = " << propDelay << ", txDuration = " << txDuration << endl;
         // send it
         sendDirect(bsr, propDelay, txDuration, targetModule->gate("Src_in"));
         EV << getFullName() << " Sent BSR to = " << targetModule->getFullName() << " at " << simTime() << endl;
